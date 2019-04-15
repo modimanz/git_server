@@ -1,0 +1,70 @@
+---
+
+- name: Install Required Packages
+  apt:
+    name:
+      - git
+      - nginx
+      - fcgiwrap
+      - apache2-utils
+    state: present
+
+- name: Make dir {{ git_repo_path }}
+
+# TODO Use ansible-role-nginx-master in the future
+#- name: Add the Nginx Role
+#  include_roles:
+#    name: ansible-role-nginx-master
+#  vars:
+#    nginx_modules:
+#      njs: false
+#      perl: false
+#      waf: false
+#      geoip: false
+#      image_filter: false
+#      rtmp: false
+#      xslt: false
+#    nginx_http_template_enable: true
+#    nginx_http_template:
+#      app:
+#        port: {{ git_server_port }}
+#        conf_file_name: git.conf
+#        locations:
+#          default:
+#            location: {{ git_repo_path}}
+#            html_file_location: {{ git_repo_path }}
+
+# Set Permission on  git folder
+- name: Set permissions on git foler
+  file:
+    path: /srv/git
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+    recurse: yes
+
+# Create a user account
+#  - sudo htpasswd -c {{ git_repo_path }}/htpasswd git
+- name: Create a Http User Account
+  htpasswd:
+    - path: "{{ git_repo_path }}/htpasswd"
+      name: "{{ item.user }}"
+      password: "{{ item.pass }}"
+      owner: root
+      group: www-data
+      mode: 0640
+      state: present
+  loop: "{{ git_users }}"
+
+- name: Configure Nginx
+  - name: Configure Nginx
+    template:
+      src: nginx-default.conf.j2
+      dest: /etc/nginx/sites-available/default
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+      - Restart Nginx
+

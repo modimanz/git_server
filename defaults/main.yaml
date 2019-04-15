@@ -1,0 +1,10 @@
+---
+
+
+git_repo_path: /srv/git
+
+git_server_port: 80
+
+git_users:
+  - user: git
+    pass: "serf493409g0dggsgfdg"
